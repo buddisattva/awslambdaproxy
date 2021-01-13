@@ -59,6 +59,10 @@ type Config struct {
 	Debug bool
 	// Bypass is a comma separated list of ips/domains to bypass proxy
 	Bypass string
+	// ForwardPort should not be a port already in use on OS
+	ForwardPort string
+	// TunnelPort should not be a port already in use on OS
+	TunnelPort string
 }
 
 // Server is the long running server component of awslambdaproxy
@@ -76,6 +80,8 @@ type Server struct {
 	reverseTunnelSSHPort     string
 	debug                    bool
 	bypass                   string
+	forwardPort              string
+	tunnelPort               string
 	logger                   *logrus.Logger
 }
 
@@ -105,6 +111,8 @@ func New(config Config) (*Server, error) {
 		reverseTunnelSSHPort:     config.ReverseTunnelSSHPort,
 		debug:                    config.Debug,
 		bypass:                   config.Bypass,
+		forwardPort:              config.ForwardPort,
+		tunnelPort:               config.TunnelPort,
 		logger:                   logger,
 	}
 
@@ -122,6 +130,8 @@ func New(config Config) (*Server, error) {
 		"reverseTunnelSSHPort":     s.reverseTunnelSSHPort,
 		"debug":                    s.debug,
 		"bypass":                   s.bypass,
+		"forwardPort":              s.forwardPort,
+		"tunnelPort":               s.tunnelPort,
 	}).Info("server has been configured with the following values")
 
 	return s, nil
@@ -146,13 +156,13 @@ func (s *Server) Run() {
 	}
 
 	s.logger.Infof("starting local proxy")
-	localProxy, err := NewLocalProxy(s.proxyListeners, s.proxyDebug, s.bypass)
+	localProxy, err := NewLocalProxy(s.proxyListeners, s.proxyDebug, s.bypass, s.forwardPort)
 	if err != nil {
 		s.logger.WithError(err).Fatalf("failed to setup local proxy")
 	}
 
 	s.logger.Println("starting connection manager")
-	tunnelConnectionManager, err := newTunnelConnectionManager(s.lambdaExecutionFrequency, localProxy)
+	tunnelConnectionManager, err := newTunnelConnectionManager(s.lambdaExecutionFrequency, s.forwardPort, s.tunnelPort, localProxy)
 	if err != nil {
 		s.logger.WithError(err).Fatalf("failed to setup connection manager")
 	}

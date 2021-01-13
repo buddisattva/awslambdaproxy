@@ -13,10 +13,10 @@ import (
 )
 
 var (
-	frequency                                                               time.Duration
-	memory                                                                  int
-	debug, debugProxy                                                       bool
-	lambdaName, lambdaIamRole, sshUser, sshPort, regions, listeners, bypass string
+	frequency                                                                                        time.Duration
+	memory                                                                                           int
+	debug, debugProxy                                                                                bool
+	lambdaName, lambdaIamRole, sshUser, sshPort, regions, listeners, bypass, forwardPort, tunnelPort string
 )
 
 // runCmd represents the run command
@@ -52,6 +52,8 @@ var runCmd = &cobra.Command{
 		aBypass := viper.GetString("bypass")
 		aLambdaName := viper.GetString("lambda-name")
 		aLambdaIamRoleName := viper.GetString("lambda-iam-role-name")
+		aForwardPort := viper.GetString("forward-port")
+		aTunnelPort := viper.GetString("tunnel-port")
 
 		if _, err := server.GetSessionAWS(); err != nil {
 			log.Fatal("unable to find valid aws credentials")
@@ -69,6 +71,8 @@ var runCmd = &cobra.Command{
 			ReverseTunnelSSHPort:     aSSHPort,
 			Bypass:                   aBypass,
 			Debug:                    aDebug,
+			ForwardPort:              aForwardPort,
+			TunnelPort:               aTunnelPort,
 		})
 		if err != nil {
 			log.Fatal(err)
@@ -119,6 +123,11 @@ func init() {
 		"comma separated list of domains/ips to bypass lambda proxy (e.g. *.websocket.org,*.youtube.com). "+
 			"note that when using sock5 proxy mode you'll need to be remotely resolving dns for this to work.")
 
+	runCmd.Flags().StringVarP(&forwardPort, "forward-port", "fp", "8082",
+		"listened forward port")
+	runCmd.Flags().StringVarP(&tunnelPort, "tunnel-port", "tp", "8081",
+		"listened tunnel port")
+
 	viper.BindPFlag("lambda-name", runCmd.Flags().Lookup("lambda-name"))
 	viper.BindPFlag("lambda-iam-role-name", runCmd.Flags().Lookup("lambda-iam-role-name"))
 	viper.BindPFlag("regions", runCmd.Flags().Lookup("regions"))
@@ -130,4 +139,6 @@ func init() {
 	viper.BindPFlag("debug-proxy", runCmd.Flags().Lookup("debug-proxy"))
 	viper.BindPFlag("debug", runCmd.Flags().Lookup("debug"))
 	viper.BindPFlag("bypass", runCmd.Flags().Lookup("bypass"))
+	viper.BindPFlag("forward-port", runCmd.Flags().Lookup("forward-port"))
+	viper.BindPFlag("tunnel-port", runCmd.Flags().Lookup("tunnel-port"))
 }

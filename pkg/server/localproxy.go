@@ -8,10 +8,6 @@ import (
 	"github.com/ginuerzh/gost"
 )
 
-const (
-	forwardProxy = "localhost:8082"
-)
-
 // LocalProxy is proxy listener and where to forward
 type LocalProxy struct {
 	listeners    []string
@@ -48,11 +44,11 @@ func (l *LocalProxy) run() {
 }
 
 // NewLocalProxy starts a local proxy that will forward to proxy running in Lambda
-func NewLocalProxy(listeners []string, debugProxy bool, bypass string) (*LocalProxy, error) {
+func NewLocalProxy(listeners []string, debugProxy bool, bypass string, forwardPort string) (*LocalProxy, error) {
 	if debugProxy {
 		gost.SetLogger(&gost.LogLogger{})
 	}
-	fproxy := forwardProxy
+	fproxy := "localhost:" + forwardPort
 	if bypass != "" {
 		fproxy += fmt.Sprintf("?bypass=%v", bypass)
 	}

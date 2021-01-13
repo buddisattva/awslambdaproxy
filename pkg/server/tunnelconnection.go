@@ -17,10 +17,8 @@ import (
 )
 
 const (
-	checkIPURL  = "http://checkip.amazonaws.com"
-	maxTunnels  = 10
-	forwardPort = "8082"
-	tunnelPort  = "8081"
+	checkIPURL = "http://checkip.amazonaws.com"
+	maxTunnels = 10
 )
 
 type tunnelConnection struct {
@@ -38,6 +36,7 @@ type connectionManager struct {
 	tunnelExpectedRuntime float64
 	tunnelRedeployNeeded  chan bool
 	activeTunnel          string
+	forwardPort           string
 	localProxy            *LocalProxy
 }
 
@@ -128,7 +127,7 @@ func (t *connectionManager) runTunnel() {
 }
 
 func (t *connectionManager) getLambdaExternalIP() (string, error) {
-	proxyURL, err := url.Parse("http://localhost:" + forwardPort)
+	proxyURL, err := url.Parse("http://localhost:" + t.forwardPort)
 	if err != nil {
 		return "", err
 	}
@@ -244,13 +243,18 @@ func (t *connectionManager) isReady() bool {
 	return true
 }
 
-func newTunnelConnectionManager(frequency time.Duration, localProxy *LocalProxy) (*connectionManager, error) {
-	forwardListener, err := startForwardListener()
+func newTunnelConnectionManager(
+	frequency time.Duration,
+	forwardPort string,
+	tunnelPort string,
+	localProxy *LocalProxy,
+) (*connectionManager, error) {
+	forwardListener, err := startForwardListener(forwardPort)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to start UserListener")
 	}
 
-	tunnelListener, err := startTunnelListener()
+	tunnelListener, err := startTunnelListener(tunnelPort)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to start TunnelListener")
 	}
@@ -261,6 +265,7 @@ func newTunnelConnectionManager(frequency time.Duration, localProxy *LocalProxy)
 		tunnelConnections:     make(map[string]tunnelConnection),
 		tunnelRedeployNeeded:  make(chan bool),
 		tunnelExpectedRuntime: frequency.Seconds(),
+		forwardPort:           forwardPort,
 		localProxy:            localProxy,
 	}
 
@@ -270,7 +275,7 @@ func newTunnelConnectionManager(frequency time.Duration, localProxy *LocalProxy)
 	return connectionManager, nil
 }
 
-func startTunnelListener() (net.Listener, error) {
+func startTunnelListener(tunnelPort string) (net.Listener, error) {
 	tunnelAddress := "localhost:" + tunnelPort
 	tunnelListener, err := net.Listen("tcp", tunnelAddress)
 
@@ -281,7 +286,7 @@ func startTunnelListener() (net.Listener, error) {
 	return tunnelListener, nil
 }
 
-func startForwardListener() (net.Listener, error) {
+func startForwardListener(forwardPort string) (net.Listener, error) {
 	forwardAddress := "localhost:" + forwardPort
 	forwardListener, err := net.Listen("tcp", forwardAddress)
 
