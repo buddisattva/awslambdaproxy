@@ -123,9 +123,9 @@ func init() {
 		"comma separated list of domains/ips to bypass lambda proxy (e.g. *.websocket.org,*.youtube.com). "+
 			"note that when using sock5 proxy mode you'll need to be remotely resolving dns for this to work.")
 
-	runCmd.Flags().StringVarP(&forwardPort, "forward-port", "fp", "8082",
+	runCmd.Flags().StringVarP(&forwardPort, "forward-port", "", "8082",
 		"listened forward port")
-	runCmd.Flags().StringVarP(&tunnelPort, "tunnel-port", "tp", "8081",
+	runCmd.Flags().StringVarP(&tunnelPort, "tunnel-port", "", "8081",
 		"listened tunnel port")
 
 	viper.BindPFlag("lambda-name", runCmd.Flags().Lookup("lambda-name"))
