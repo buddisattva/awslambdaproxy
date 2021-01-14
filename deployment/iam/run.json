@@ -7,7 +7,7 @@
         "lambda:*"
       ],
       "Resource": [
-        "arn:aws:lambda:*:*:function:awslambdaproxy"
+        "arn:aws:lambda:*:*:function:awslambdaproxy*"
       ]
     },
     {

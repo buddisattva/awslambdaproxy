@@ -120,6 +120,16 @@ aws iam create-access-key --user-name awslambdaproxy-run
 
 # increase function memory size for better network performance
 ./awslambdaproxy run -m 512
+
+# run multiple processes on one ec2 instance
+AWS_ACCESS_KEY_ID=ZZZZ AWS_SECRET_ACCESS_KEY=XXXX ./awslambdaproxy run -r ap-northeast-1 -l momo:momo@:5566 -n awslambdaproxy1 --forward-port 8000 --tunnel-port 8001
+## send above job to background or open another SSH session before running new processes
+AWS_ACCESS_KEY_ID=ZZZZ AWS_SECRET_ACCESS_KEY=XXXX ./awslambdaproxy run -r ap-northeast-1 -l momo:momo@:5567 -n awslambdaproxy2 --forward-port 8002 --tunnel-port 8003
+.
+.
+.
+AWS_ACCESS_KEY_ID=ZZZZ AWS_SECRET_ACCESS_KEY=XXXX ./awslambdaproxy run -r ap-northeast-1 -l momo:momo@:5571 -n awslambdaproxy6 --forward-port 8006 --tunnel-port 8007 
+## names of lambda functions must start with "awslambdaproxy" because permissions of awslambdaproxy-run IAM user restrict functions usage
 ```
 
 ## FAQ
