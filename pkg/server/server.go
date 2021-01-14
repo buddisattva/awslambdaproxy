@@ -144,7 +144,7 @@ func (s *Server) Run() {
 	}
 
 	s.logger.Infof("setting up lambda infrastructure")
-	err = setupLambdaInfrastructure(s.lambdaName, s.lambdaIamRole, s.lambdaRegions, s.lambdaMemory, s.lambdaTimeoutSeconds)
+	err = setupLambdaInfrastructure(s.lambdaName, s.lambdaIamRole, s.lambdaRegions, s.lambdaMemory, s.lambdaTimeoutSeconds, s.tunnelPort)
 	if err != nil {
 		s.logger.WithError(err).Fatalf("failed to setup lambda infrastructure")
 	}

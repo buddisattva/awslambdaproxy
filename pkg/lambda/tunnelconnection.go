@@ -4,13 +4,10 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
+	"os"
 
 	"github.com/hashicorp/yamux"
 	"golang.org/x/crypto/ssh"
-)
-
-const (
-	tunnelPortOnRemoteServer = "localhost:8081"
 )
 
 type lambdaTunnelConnection struct {
@@ -39,6 +36,8 @@ func (l *lambdaTunnelConnection) setup() {
 		log.Fatalf("Failed to start SSH tunnel to %v: %v\n", l.tunnelHost, err)
 	}
 	log.Printf("Setup SSH tunnel to tunnelHost=%v\n", l.tunnelHost)
+
+	tunnelPortOnRemoteServer := "localhost:" + os.Getenv("TUNNEL_PORT")
 
 	localConn, err := tunnelConn.Dial("tcp", tunnelPortOnRemoteServer)
 	if err != nil {

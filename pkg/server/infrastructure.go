@@ -27,6 +27,7 @@ type lambdaInfrastructure struct {
 	regions          []string
 	lambdaTimeout    int64
 	lambdaMemorySize int64
+	tunnelPort       string
 }
 
 // SetupLambdaInfrastructure sets up IAM role needed to run awslambdaproxy
@@ -121,7 +122,7 @@ func (infra *lambdaInfrastructure) setup() error {
 	return nil
 }
 
-func setupLambdaInfrastructure(name string, iamRole string, regions []string, memorySize int64, timeout int64) error {
+func setupLambdaInfrastructure(name string, iamRole string, regions []string, memorySize int64, timeout int64, tunnelPort string) error {
 	infra := lambdaInfrastructure{
 		name:             name,
 		iamRole:          iamRole,
@@ -129,6 +130,7 @@ func setupLambdaInfrastructure(name string, iamRole string, regions []string, me
 		config:           &aws.Config{},
 		lambdaTimeout:    timeout,
 		lambdaMemorySize: memorySize,
+		tunnelPort:       tunnelPort,
 	}
 	if err := infra.setup(); err != nil {
 		return errors.Wrap(err, "Could not setup Lambda Infrastructure")
@@ -177,6 +179,9 @@ func (infra *lambdaInfrastructure) createLambdaFunction(svc *lambda.Lambda, role
 		MemorySize:   aws.Int64(infra.lambdaMemorySize),
 		Publish:      aws.Bool(true),
 		Timeout:      aws.Int64(infra.lambdaTimeout),
+		Environment: &lambda.Environment{
+			Variables: map[string]*string{"TUNNEL_PORT": &infra.tunnelPort},
+		},
 	})
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok {
